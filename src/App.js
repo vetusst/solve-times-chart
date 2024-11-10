@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     ComposedChart,
     Scatter,
@@ -13,7 +13,12 @@ import {
     Label,
 } from "recharts";
 
-import { parseRawData, calculateAverages, calculateStats, calculateDefaultYDomain } from "./cubeUtils";
+import {
+    parseRawData,
+    calculateAverages,
+    calculateStats,
+    calculateDefaultYDomain,
+} from "./cubeUtils";
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -38,7 +43,7 @@ const StatsCard = ({ stats }) => {
     return (
         <div className="rounded-lg border border-gray-700 bg-gray-800 shadow-sm p-6">
             <h3 className="text-2xl font-bold mb-4">Solve Statistics</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="text-center">
                     <div className="text-sm font-medium text-gray-400">Best</div>
                     <div className="text-2xl font-bold">{stats.best}s</div>
@@ -50,6 +55,14 @@ const StatsCard = ({ stats }) => {
                 <div className="text-center">
                     <div className="text-sm font-medium text-gray-400">Mean</div>
                     <div className="text-2xl font-bold">{stats.mean}s</div>
+                </div>
+                <div className="text-center">
+                    <div className="text-sm font-medium text-gray-400">Best ao5</div>
+                    <div className="text-2xl font-bold">{stats.bestAo5}s</div>
+                </div>
+                <div className="text-center">
+                    <div className="text-sm font-medium text-gray-400">Best ao12</div>
+                    <div className="text-2xl font-bold">{stats.bestAo12}s</div>
                 </div>
                 <div className="text-center">
                     <div className="text-sm font-medium text-gray-400">Total Solves</div>
@@ -64,7 +77,7 @@ const generateTicks = (min, max, count) => {
     const range = max - min;
     const step = range / (count - 1);
     return Array.from({ length: count }, (_, i) => {
-        const value = min + (step * i);
+        const value = min + step * i;
         return parseFloat(value.toFixed(1));
     });
 };
@@ -73,17 +86,31 @@ function App() {
     const [solveData, setSolveData] = useState(null);
     const [yDomain, setYDomain] = useState(null);
 
+    useEffect(() => {
+        const savedData = localStorage.getItem("solves");
+        if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            setSolveData(parsedData);
+            const defaultDomain = calculateDefaultYDomain(parsedData.solves.map((s) => s.time));
+            setYDomain(defaultDomain);
+        }
+    }, []);
+
     const handleDataInput = (text) => {
         const solves = parseRawData(text);
         if (solves.length === 0) {
             return;
         }
-        setSolveData({
+        const newSolveData = {
             solves,
             chartData: calculateAverages(solves),
-            stats: calculateStats(solves)
-        });
-        const defaultDomain = calculateDefaultYDomain(solves.map(s => s.time));
+            stats: calculateStats(solves),
+        };
+
+        setSolveData(newSolveData);
+        localStorage.setItem("solves", JSON.stringify(newSolveData));
+
+        const defaultDomain = calculateDefaultYDomain(solves.map((s) => s.time));
         setYDomain(defaultDomain);
     };
 
@@ -95,16 +122,13 @@ function App() {
         const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
         const newRange = currentRange * zoomFactor;
         const halfRange = newRange / 2;
-        
-        setYDomain([
-            Math.max(0, meanTime - halfRange),
-            meanTime + halfRange
-        ]);
+
+        setYDomain([Math.max(0, meanTime - halfRange), meanTime + halfRange]);
     };
 
     const resetZoom = () => {
         if (solveData) {
-            const defaultDomain = calculateDefaultYDomain(solveData.solves.map(s => s.time));
+            const defaultDomain = calculateDefaultYDomain(solveData.solves.map((s) => s.time));
             setYDomain(defaultDomain);
         }
     };
@@ -114,7 +138,9 @@ function App() {
             <div className="min-h-screen bg-gray-900 text-gray-200 p-4 flex items-center justify-center">
                 <div className="w-full max-w-2xl">
                     <h1 className="text-2xl font-bold mb-4 text-center">Cube Solve Analytics</h1>
-                    <p className="text-gray-400 mb-4 text-center">Paste your solve times data below</p>
+                    <p className="text-gray-400 mb-4 text-center">
+                        Paste your solve times data below
+                    </p>
                     <textarea
                         className="w-full h-64 p-4 rounded bg-gray-800 border border-gray-700 text-gray-200 font-mono"
                         placeholder="Paste your times here..."
@@ -136,7 +162,7 @@ function App() {
                     New Data
                 </button>
             </div>
-            
+
             <StatsCard stats={solveData.stats} />
 
             <div className="rounded-lg border border-gray-700 bg-gray-800 shadow-sm p-6 h-[calc(100vh-16rem)] grow">
@@ -149,10 +175,10 @@ function App() {
                         Reset Zoom
                     </button>
                 </div>
-                <div 
+                <div
                     className="h-[calc(100%-6rem)]"
                     onWheel={handleWheel}
-                    style={{ cursor: 'ns-resize' }}
+                    style={{ cursor: "ns-resize" }}
                 >
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
