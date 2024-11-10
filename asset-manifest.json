@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/solve-times-chart/static/css/main.0e49e037.css",
-    "main.js": "/solve-times-chart/static/js/main.db58fcfc.js",
+    "main.css": "/solve-times-chart/static/css/main.9ba044e3.css",
+    "main.js": "/solve-times-chart/static/js/main.f00334c2.js",
     "index.html": "/solve-times-chart/index.html",
-    "main.0e49e037.css.map": "/solve-times-chart/static/css/main.0e49e037.css.map",
-    "main.db58fcfc.js.map": "/solve-times-chart/static/js/main.db58fcfc.js.map"
+    "main.9ba044e3.css.map": "/solve-times-chart/static/css/main.9ba044e3.css.map",
+    "main.f00334c2.js.map": "/solve-times-chart/static/js/main.f00334c2.js.map"
   },
   "entrypoints": [
-    "static/css/main.0e49e037.css",
-    "static/js/main.db58fcfc.js"
+    "static/css/main.9ba044e3.css",
+    "static/js/main.f00334c2.js"
   ]
 }
